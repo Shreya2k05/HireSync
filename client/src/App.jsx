@@ -8,6 +8,8 @@ import DashboardPage from './pages/DashboardPage'
 import ResumePage from './pages/ResumePage'
 import InterviewPage from './pages/InterviewPage'
 import AnalyticsPage from './pages/AnalyticsPage'
+import SettingsPage from './pages/SettingsPage'
+import ProfilePage from './pages/ProfilePage'
 export default function App() {
   return (
     <BrowserRouter>
@@ -30,6 +32,8 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
         <Route path="/interview" element={<ProtectedRoute><InterviewPage /></ProtectedRoute>} />
         <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage/></ProtectedRoute>}/>
       </Routes>
     </BrowserRouter>
   )
