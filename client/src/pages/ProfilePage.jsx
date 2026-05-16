@@ -12,15 +12,6 @@ const SKILL_SUGGESTIONS = [
   'Machine Learning', 'Data Analysis', 'Product Management', 'Figma', 'SQL',
 ]
 
-const BADGES = [
-  { icon: '🎯', label: 'First Interview', desc: 'Completed your first mock interview', earned: true },
-  { icon: '🔥', label: '5 Interviews', desc: 'Completed 5 mock interviews', earned: true },
-  { icon: '⭐', label: 'High Scorer', desc: 'Scored above 80% in an interview', earned: true },
-  { icon: '📄', label: 'Resume Pro', desc: 'Analyzed 3+ resumes', earned: true },
-  { icon: '🏆', label: '10 Interviews', desc: 'Completed 10 mock interviews', earned: false },
-  { icon: '💎', label: 'Perfect Score', desc: 'Score above 95% in an interview', earned: false },
-]
-
 // ── Avatar ────────────────────────────────────────────────────────────────────
 function Avatar({ name, size = 80 }) {
   return (
@@ -123,6 +114,15 @@ export default function ProfilePage() {
   }
 
   const recentSessions = analytics?.recentInterviews || []
+
+  const dynamicBadges = [
+    { icon: '🎯', label: 'First Interview', desc: 'Completed your first mock interview', earned: stats.interviews >= 1 },
+    { icon: '🔥', label: '5 Interviews', desc: 'Completed 5 mock interviews', earned: stats.interviews >= 5 },
+    { icon: '⭐', label: 'High Scorer', desc: 'Scored above 80% in an interview', earned: stats.bestScore >= 80 },
+    { icon: '📄', label: 'Resume Pro', desc: 'Analyzed 3+ resumes', earned: (analytics?.atsHistory?.length || 0) >= 3 },
+    { icon: '🏆', label: '10 Interviews', desc: 'Completed 10 mock interviews', earned: stats.interviews >= 10 },
+    { icon: '💎', label: 'Perfect Score', desc: 'Score above 95% in an interview', earned: stats.bestScore >= 95 },
+  ]
 
   // ── Handlers ────────────────────────────────────────────────────────────────
   const handleSave = async () => {
@@ -259,7 +259,7 @@ export default function ProfilePage() {
           <div className="hs-card" style={{ padding: 22, marginBottom: 16 }}>
             <h3 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', marginBottom: 14 }}>🏅 Achievements</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
-              {BADGES.filter(b => b.earned).map((b, i) => (
+              {dynamicBadges.filter(b => b.earned).map((b, i) => (
                 <div key={i} style={{ padding: '12px', borderRadius: 12, background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', textAlign: 'center' }}>
                   <div style={{ fontSize: 26, marginBottom: 6 }}>{b.icon}</div>
                   <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>{b.label}</p>
@@ -466,7 +466,7 @@ export default function ProfilePage() {
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
         <Section title="Achievements" icon="🏅">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
-            {BADGES.map((b, i) => (
+            {dynamicBadges.map((b, i) => (
               <div key={i} style={{
                 padding: 14, borderRadius: 12, textAlign: 'center',
                 background: b.earned ? 'rgba(139,92,246,0.08)' : 'var(--bg-secondary)',

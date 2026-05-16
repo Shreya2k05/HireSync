@@ -42,47 +42,48 @@ export default function AppLayout({ children }) {
           overflow: 'hidden',
         }}
       >
-        {/* Toggle Minimize Button */}
-        <button
-          onClick={() => setIsMinimized(!isMinimized)}
-          style={{
-            position: 'absolute',
-            top: 24,
-            right: isMinimized ? 'auto' : 12,
-            left: isMinimized ? 24 : 'auto',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            color: 'var(--text-primary)',
-            borderRadius: '50%',
-            width: 24,
-            height: 24,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            zIndex: 50,
-            fontSize: 12
-          }}
-          title={isMinimized ? "Expand Sidebar" : "Minimize Sidebar"}
-        >
-          {isMinimized ? '▶' : '◀'}
-        </button>
-
-        {/* Logo */}
+        {/* Header: Logo and Toggle */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 8,
-          padding: isMinimized ? '32px 0 0 4px' : '4px 12px',
+          justifyContent: isMinimized ? 'center' : 'space-between',
+          flexDirection: isMinimized ? 'column' : 'row',
+          gap: isMinimized ? 24 : 8,
+          padding: isMinimized ? '8px 0' : '4px 12px',
           marginBottom: 28,
-          justifyContent: isMinimized ? 'center' : 'flex-start'
         }}>
-          <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>⚡</div>
-          {!isMinimized && (
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, color: 'var(--text-primary)', fontSize: 15, whiteSpace: 'nowrap' }}>
-              HireSync <span style={{ color: '#8B5CF6' }}>AI</span>
-            </span>
-          )}
+          {/* Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>⚡</div>
+            {!isMinimized && (
+              <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, color: 'var(--text-primary)', fontSize: 15, whiteSpace: 'nowrap' }}>
+                HireSync <span style={{ color: '#8B5CF6' }}>AI</span>
+              </span>
+            )}
+          </div>
+
+          {/* Toggle Minimize Button */}
+          <button
+            onClick={() => setIsMinimized(!isMinimized)}
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-primary)',
+              borderRadius: '50%',
+              width: 24,
+              height: 24,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              zIndex: 50,
+              fontSize: 10,
+              flexShrink: 0
+            }}
+            title={isMinimized ? "Expand Sidebar" : "Minimize Sidebar"}
+          >
+            {isMinimized ? '▶' : '◀'}
+          </button>
         </div>
 
         {/* Nav */}
