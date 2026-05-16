@@ -1,100 +1,46 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
-import { useState } from 'react'
+import api from '../services/api'
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar,
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
 } from 'recharts'
 
-const skillData = [
-  { skill: 'DSA', score: 72 }, { skill: 'System Design', score: 58 },
-  { skill: 'Behavioral', score: 85 }, { skill: 'Communication', score: 78 },
-  { skill: 'Problem Solving', score: 65 }, { skill: 'Domain Knowledge', score: 80 },
-]
-
-const progressData = [
-  { session: 'S1', score: 52 }, { session: 'S2', score: 61 },
-  { session: 'S3', score: 58 }, { session: 'S4', score: 70 },
-  { session: 'S5', score: 75 }, { session: 'S6', score: 82 },
-]
-
-const recentInterviews = [
-  { role: 'SWE — Google', score: 82, date: '2 days ago' },
-  { role: 'PM — Razorpay', score: 74, date: '5 days ago' },
-  { role: 'SDE II — Swiggy', score: 68, date: '1 week ago' },
-]
-
-const skillGaps = [
-  { skill: 'System Design', level: 58, priority: 'High' },
-  { skill: 'DSA — Trees & Graphs', level: 62, priority: 'High' },
-  { skill: 'SQL Optimization', level: 70, priority: 'Medium' },
-]
-
 export default function DashboardPage() {
-  const { user, logout } = useAuth()
-  const { theme, toggle } = useTheme()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { user } = useAuth()
+  const [analytics, setAnalytics] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  const navItems = [
-    { label: 'Dashboard', path: '/dashboard', icon: '🏠' },
-    { label: 'Resume', path: '/resume', icon: '📄' },
-    { label: 'Interview', path: '/interview', icon: '🎤' },
-    { label: 'Analytics', path: '/analytics', icon: '📊' },
-    { label: 'Settings', path: '/settings', icon: '⚙️' },
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const { data } = await api.get('/analytics');
+        setAnalytics(data);
+      } catch (err) {
+        console.error('Failed to fetch analytics', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnalytics();
+  }, [])
+
+  const skillData = analytics?.skillRadar || []
+  const progressData = analytics?.scoreHistory || []
+  const recentInterviews = analytics?.recentInterviews || []
+  const skillGaps = analytics?.weakAreas?.map(wa => ({ skill: wa.skill, level: wa.score, priority: wa.score < 60 ? 'High' : 'Medium' })) || []
+  
+  const stats = analytics?.stats || [
+    { label: 'ATS Score', value: '0%', change: '+0%', icon: '📄', color: '#8B5CF6' },
+    { label: 'Interviews Done', value: '0', change: '+0', icon: '🎤', color: '#22D3EE' },
+    { label: 'Best Score', value: '0%', icon: '🏆', color: '#EC4899' },
+    { label: 'Avg. Score', value: '0%', change: '+0%', icon: '📊', color: '#F59E0B' },
   ]
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
-
-      {/* Sidebar */}
-      <aside style={{
-        width: 220, flexShrink: 0, background: 'var(--bg-secondary)',
-        borderRight: '1px solid var(--border)', display: 'flex',
-        flexDirection: 'column', padding: '20px 12px', position: 'fixed',
-        top: 0, left: 0, height: '100vh', zIndex: 40,
-      }}>
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 12px', marginBottom: 28 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⚡</div>
-          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, color: 'var(--text-primary)', fontSize: 15 }}>HireSync <span style={{ color: '#8B5CF6' }}>AI</span></span>
-        </div>
-
-        {/* Nav */}
-        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {navItems.map(item => (
-            <Link key={item.path} to={item.path} style={{ textDecoration: 'none' }}>
-              <div className={`sidebar-item ${window.location.pathname === item.path ? 'active' : ''}`}>
-                <span>{item.icon}</span>
-                <span>{item.label}</span>
-              </div>
-            </Link>
-          ))}
-        </nav>
-
-        {/* Bottom */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <button onClick={toggle} className="sidebar-item" style={{ border: 'none', background: 'none', cursor: 'pointer', width: '100%' }}>
-            <span>{theme === 'dark' ? '☀️' : '🌙'}</span>
-            <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
-          </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #8B5CF6, #22D3EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'white', flexShrink: 0 }}>
-              {user?.name?.charAt(0).toUpperCase()}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name}</p>
-              <p style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</p>
-            </div>
-            <button onClick={logout} title="Logout" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 16 }}>🚪</button>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main */}
-      <main style={{ flex: 1, marginLeft: 220, padding: 32, maxWidth: '100%' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+    <div style={{ maxWidth: 1200, margin: '0 auto' }}>
 
           {/* Welcome Banner */}
           <motion.div
@@ -115,12 +61,7 @@ export default function DashboardPage() {
 
           {/* Stat Cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
-            {[
-              { label: 'ATS Score', value: '84%', change: '+6%', icon: '📄', color: '#8B5CF6' },
-              { label: 'Interviews Done', value: '12', change: '+3', icon: '🎤', color: '#22D3EE' },
-              { label: 'Best Score', value: '92%', icon: '🏆', color: '#EC4899' },
-              { label: 'Avg. Score', value: '74%', change: '+12%', icon: '📊', color: '#F59E0B' },
-            ].map((s, i) => (
+            {stats.map((s, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                 className="hs-card" style={{ padding: 20, position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: s.color, filter: 'blur(30px)', opacity: 0.2 }} />
@@ -223,7 +164,5 @@ export default function DashboardPage() {
           </div>
 
         </div>
-      </main>
-    </div>
   )
 }

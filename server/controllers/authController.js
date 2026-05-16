@@ -54,3 +54,30 @@ export const login = async (req, res, next) => {
 export const getMe = async (req, res) => {
   res.json({ user: req.user });
 };
+
+export const updateProfile = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const { name, role, bio, location, linkedin, github, website, targetRole, experience, skills } = req.body;
+    
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (name !== undefined) user.name = name;
+    if (role !== undefined) user.role = role;
+    if (bio !== undefined) user.bio = bio;
+    if (location !== undefined) user.location = location;
+    if (linkedin !== undefined) user.linkedin = linkedin;
+    if (github !== undefined) user.github = github;
+    if (website !== undefined) user.website = website;
+    if (targetRole !== undefined) user.targetRole = targetRole;
+    if (experience !== undefined) user.experience = experience;
+    if (skills !== undefined) user.skills = skills;
+
+    await user.save();
+
+    res.json({ user });
+  } catch (error) {
+    next(error);
+  }
+};

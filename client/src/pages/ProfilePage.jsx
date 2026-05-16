@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
+import api from '../services/api'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const SKILL_SUGGESTIONS = [
@@ -80,54 +81,65 @@ function Section({ title, icon, children, action }) {
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function ProfilePage() {
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
   const [editing, setEditing] = useState(false)
   const [showPublic, setShowPublic] = useState(false)
   const [copied, setCopied] = useState(false)
 
   const [profile, setProfile] = useState({
-    name: user?.name || 'Aryan Mehta',
-    role: 'Software Engineer',
-    bio: 'Passionate developer focused on building scalable web applications. Currently preparing for top tech company interviews.',
-    location: 'Delhi, India',
-    linkedin: 'linkedin.com/in/aryanmehta',
-    github: 'github.com/aryanmehta',
-    website: '',
-    targetRole: 'SWE at FAANG',
-    experience: 'Fresher',
-    skills: ['JavaScript', 'React', 'Node.js', 'MongoDB', 'Python', 'DSA', 'System Design'],
+    name: user?.name || '',
+    role: user?.role || '',
+    bio: user?.bio || '',
+    location: user?.location || '',
+    linkedin: user?.linkedin || '',
+    github: user?.github || '',
+    website: user?.website || '',
+    targetRole: user?.targetRole || '',
+    experience: user?.experience || '',
+    skills: user?.skills || [],
   })
 
   const [newSkill, setNewSkill] = useState('')
   const [skillSearch, setSkillSearch] = useState('')
+  const [analytics, setAnalytics] = useState(null)
+  
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const { data } = await api.get('/analytics');
+        setAnalytics(data);
+      } catch (err) {
+        console.error('Failed to fetch analytics', err);
+      }
+    };
+    fetchAnalytics();
+  }, [])
 
   const stats = {
-    interviews: user?.totalInterviews || 12,
-    avgScore: user?.avgScore || 74,
-    bestScore: 92,
-    atsScore: 84,
+    interviews: analytics?.stats?.find(s => s.label === 'Total Interviews')?.value || 0,
+    avgScore: parseInt(analytics?.stats?.find(s => s.label === 'Average Score')?.value) || 0,
+    bestScore: parseInt(analytics?.stats?.find(s => s.label === 'Best Score')?.value) || 0,
+    atsScore: parseInt(analytics?.stats?.find(s => s.label === 'ATS Score')?.value) || 0,
   }
 
-  const recentSessions = [
-    { role: 'SWE — Google', score: 88, date: 'Apr 1' },
-    { role: 'PM — Razorpay', score: 74, date: 'Mar 26' },
-    { role: 'SDE II — Swiggy', score: 82, date: 'Mar 22' },
-  ]
+  const recentSessions = analytics?.recentInterviews || []
 
   // ── Handlers ────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     try {
       const token = localStorage.getItem('hs_token')
-      await fetch('/api/auth/profile', {
+      const res = await fetch('/api/auth/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ name: profile.name }),
+        body: JSON.stringify(profile),
       })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Failed to update profile')
+      updateUser(data.user)
       toast.success('Profile saved!')
       setEditing(false)
-    } catch {
-      toast.success('Profile saved!')
-      setEditing(false)
+    } catch (err) {
+      toast.error(err.message || 'Failed to save profile')
     }
   }
 

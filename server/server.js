@@ -9,6 +9,7 @@ import errorHandler from './middleware/errorHandler.js'
 import authRoutes from './routes/auth.js'
 import resumeRoutes from './routes/resume.js'
 import interviewRoutes from './routes/interview.js'
+import analyticsRoutes from './routes/analytics.js'
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -26,6 +27,7 @@ app.use(morgan('dev'))
 app.use('/api/auth', authRoutes)
 app.use('/api/resume', resumeRoutes)
 app.use('/api/interview', interviewRoutes)
+app.use('/api/analytics', analyticsRoutes)
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }))
 

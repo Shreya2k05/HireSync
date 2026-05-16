@@ -5,66 +5,7 @@ import {
   PolarGrid, PolarAngleAxis, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts'
-
-// ── Mock Analytics Data ───────────────────────────────────────────────────────
-const mockData = {
-  stats: [
-    { label: 'Total Interviews', value: 12, change: '+3', icon: '🎤', color: '#8B5CF6' },
-    { label: 'Average Score', value: '74%', change: '+8%', icon: '📊', color: '#22D3EE' },
-    { label: 'Best Score', value: '92%', icon: '🏆', color: '#EC4899' },
-    { label: 'ATS Score', value: '84%', change: '+6%', icon: '📄', color: '#F59E0B' },
-  ],
-  scoreHistory: [
-    { session: 'S1', score: 52, date: 'Mar 1' },
-    { session: 'S2', score: 61, date: 'Mar 5' },
-    { session: 'S3', score: 58, date: 'Mar 8' },
-    { session: 'S4', score: 70, date: 'Mar 12' },
-    { session: 'S5', score: 75, date: 'Mar 18' },
-    { session: 'S6', score: 82, date: 'Mar 22' },
-    { session: 'S7', score: 79, date: 'Mar 26' },
-    { session: 'S8', score: 88, date: 'Apr 1' },
-  ],
-  skillRadar: [
-    { skill: 'DSA', score: 72 },
-    { skill: 'System Design', score: 58 },
-    { skill: 'Behavioral', score: 85 },
-    { skill: 'Communication', score: 78 },
-    { skill: 'Problem Solving', score: 65 },
-    { skill: 'Domain Knowledge', score: 80 },
-  ],
-  categoryScores: [
-    { category: 'Technical', score: 71, count: 18 },
-    { category: 'Behavioral', score: 84, count: 12 },
-    { category: 'Situational', score: 76, count: 8 },
-    { category: 'Domain', score: 69, count: 10 },
-  ],
-  pieData: [
-    { name: 'Technical', value: 18, color: '#8B5CF6' },
-    { name: 'Behavioral', value: 12, color: '#22D3EE' },
-    { name: 'Situational', value: 8, color: '#EC4899' },
-    { name: 'Domain', value: 10, color: '#F59E0B' },
-  ],
-  recentInterviews: [
-    { role: 'SWE — Google', score: 88, date: 'Apr 1', duration: '42 min', status: 'completed' },
-    { role: 'PM — Razorpay', score: 79, date: 'Mar 26', duration: '38 min', status: 'completed' },
-    { role: 'SDE II — Swiggy', score: 82, date: 'Mar 22', duration: '45 min', status: 'completed' },
-    { role: 'Frontend — Zomato', score: 75, date: 'Mar 18', duration: '35 min', status: 'completed' },
-    { role: 'Fullstack — Meesho', score: 70, date: 'Mar 12', duration: '40 min', status: 'completed' },
-  ],
-  weakAreas: [
-    { skill: 'System Design', score: 58, sessions: 4 },
-    { skill: 'DSA — Trees & Graphs', score: 62, sessions: 6 },
-    { skill: 'SQL Optimization', score: 65, sessions: 3 },
-    { skill: 'Problem Solving', score: 65, sessions: 5 },
-  ],
-  atsHistory: [
-    { label: 'Google SWE', score: 84 },
-    { label: 'Razorpay PM', score: 71 },
-    { label: 'Swiggy SDE', score: 90 },
-    { label: 'Zomato FE', score: 78 },
-    { label: 'Meesho FS', score: 85 },
-  ],
-}
+import api from '../services/api'
 
 // ── Custom Tooltip ────────────────────────────────────────────────────────────
 const CustomTooltip = ({ active, payload, label }) => {
@@ -102,9 +43,22 @@ function ProgressBar({ value, color = '#8B5CF6' }) {
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState('all')
   const [loaded, setLoaded] = useState(false)
+  const [analytics, setAnalytics] = useState(null)
+  const [loadingAnalytics, setLoadingAnalytics] = useState(true)
 
   useEffect(() => {
-    setTimeout(() => setLoaded(true), 300)
+    const fetchAnalytics = async () => {
+      try {
+        const { data } = await api.get('/analytics');
+        setAnalytics(data);
+      } catch (err) {
+        console.error('Failed to fetch analytics', err);
+      } finally {
+        setLoadingAnalytics(false);
+        setTimeout(() => setLoaded(true), 100);
+      }
+    };
+    fetchAnalytics();
   }, [])
 
   const fadeUp = (delay = 0) => ({
@@ -115,6 +69,29 @@ export default function AnalyticsPage() {
 
   const scoreColor = (score) =>
     score >= 75 ? '#10B981' : score >= 60 ? '#F59E0B' : '#EF4444'
+
+  if (loadingAnalytics) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', color: 'var(--text-secondary)' }}>
+        <p>Loading analytics...</p>
+      </div>
+    );
+  }
+
+  if (!analytics || analytics.stats[0].value === 0) {
+    return (
+      <div style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'center', paddingTop: 80 }}>
+        <h1 style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 26, color: 'var(--text-primary)', marginBottom: 16 }}>Analytics</h1>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>You haven't completed any interviews yet. Complete your first mock interview to see your analytics!</p>
+        <button
+          onClick={() => window.location.href = '/interview'}
+          style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', color: 'white', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}
+        >
+          🎤 Start New Interview
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -148,7 +125,7 @@ export default function AnalyticsPage() {
 
       {/* ── Stat Cards ── */}
       <motion.div {...fadeUp(0.05)} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 24 }}>
-        {mockData.stats.map((s, i) => (
+        {analytics.stats.map((s, i) => (
           <div key={i} className="hs-card" style={{ padding: 20, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: s.color, filter: 'blur(30px)', opacity: 0.2 }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
@@ -170,7 +147,7 @@ export default function AnalyticsPage() {
         <motion.div {...fadeUp(0.1)} className="hs-card" style={{ padding: 24 }}>
           <SectionHeader title="Interview Score History" subtitle="Your performance across all sessions" />
           <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={mockData.scoreHistory}>
+            <LineChart data={analytics.scoreHistory}>
               <defs>
                 <linearGradient id="scoreGrad" x1="0" y1="0" x2="1" y2="0">
                   <stop offset="0%" stopColor="#8B5CF6" />
@@ -192,7 +169,7 @@ export default function AnalyticsPage() {
         <motion.div {...fadeUp(0.15)} className="hs-card" style={{ padding: 24 }}>
           <SectionHeader title="Skill Radar" subtitle="Strength across categories" />
           <ResponsiveContainer width="100%" height={220}>
-            <RadarChart data={mockData.skillRadar}>
+            <RadarChart data={analytics.skillRadar}>
               <PolarGrid stroke="rgba(255,255,255,0.06)" />
               <PolarAngleAxis dataKey="skill" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
               <Radar name="Score" dataKey="score" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.2} strokeWidth={2} />
@@ -208,13 +185,13 @@ export default function AnalyticsPage() {
         <motion.div {...fadeUp(0.2)} className="hs-card" style={{ padding: 24 }}>
           <SectionHeader title="Score by Category" subtitle="Average score per question type" />
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={mockData.categoryScores} barSize={32}>
+            <BarChart data={analytics.categoryScores} barSize={32}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
               <XAxis dataKey="category" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis domain={[0, 100]} tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="score" name="Score" radius={[6, 6, 0, 0]}>
-                {mockData.categoryScores.map((_, i) => (
+                {analytics.categoryScores.map((_, i) => (
                   <Cell key={i} fill={['#8B5CF6', '#22D3EE', '#EC4899', '#F59E0B'][i]} />
                 ))}
               </Bar>
@@ -227,9 +204,9 @@ export default function AnalyticsPage() {
           <SectionHeader title="Question Distribution" subtitle="Breakdown by type" />
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
-              <Pie data={mockData.pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80}
+              <Pie data={analytics.pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80}
                 paddingAngle={3} dataKey="value">
-                {mockData.pieData.map((entry, i) => (
+                {analytics.pieData.map((entry, i) => (
                   <Cell key={i} fill={entry.color} />
                 ))}
               </Pie>
@@ -245,7 +222,7 @@ export default function AnalyticsPage() {
       <motion.div {...fadeUp(0.3)} className="hs-card" style={{ padding: 24, marginBottom: 16 }}>
         <SectionHeader title="ATS Score History" subtitle="Resume compatibility across different job applications" />
         <ResponsiveContainer width="100%" height={180}>
-          <BarChart data={mockData.atsHistory} barSize={40}>
+          <BarChart data={analytics.atsHistory} barSize={40}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
             <XAxis dataKey="label" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
             <YAxis domain={[0, 100]} tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
@@ -262,7 +239,7 @@ export default function AnalyticsPage() {
         <motion.div {...fadeUp(0.35)} className="hs-card" style={{ padding: 24 }}>
           <SectionHeader title="Focus Areas" subtitle="Topics that need improvement" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {mockData.weakAreas.map((area, i) => (
+            {analytics.weakAreas.map((area, i) => (
               <div key={i}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                   <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{area.skill}</span>
@@ -281,7 +258,7 @@ export default function AnalyticsPage() {
         <motion.div {...fadeUp(0.4)} className="hs-card" style={{ padding: 24 }}>
           <SectionHeader title="Recent Interviews" subtitle="Your last 5 sessions" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {mockData.recentInterviews.map((iv, i) => (
+            {analytics.recentInterviews.map((iv, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10, background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
                 <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(139,92,246,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>🎤</div>
                 <div style={{ flex: 1, minWidth: 0 }}>

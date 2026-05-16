@@ -23,12 +23,14 @@ function LoadingSpinner() {
   );
 }
 
+import AppLayout from '../components/layout/AppLayout';
+
 export function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
   if (loading) return <LoadingSpinner />;
   if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
-  return children;
+  return <AppLayout>{children}</AppLayout>;
 }
 
 export function PublicRoute({ children }) {

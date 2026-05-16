@@ -7,6 +7,15 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true, minlength: 8, select: false },
   totalInterviews: { type: Number, default: 0 },
   avgScore: { type: Number, default: 0 },
+  role: { type: String, default: '' },
+  bio: { type: String, default: '' },
+  location: { type: String, default: '' },
+  linkedin: { type: String, default: '' },
+  github: { type: String, default: '' },
+  website: { type: String, default: '' },
+  targetRole: { type: String, default: '' },
+  experience: { type: String, default: '' },
+  skills: [{ type: String }],
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {
