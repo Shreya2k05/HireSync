@@ -103,7 +103,7 @@ export default function InterviewPage() {
     setGenerating(true)
     try {
       const token = localStorage.getItem('hs_token')
-      const res = await fetch('/api/interview/generate', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/interview/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
