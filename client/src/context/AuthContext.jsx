@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
@@ -9,7 +11,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = localStorage.getItem('hs_token')
     if (token) {
-      fetch('/api/auth/me', {
+      fetch(`${API_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.json())
@@ -25,7 +27,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   const login = useCallback(async (email, password) => {
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -38,7 +40,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   const signup = useCallback(async (name, email, password) => {
-    const res = await fetch('/api/auth/signup', {
+    const res = await fetch(`${API_URL}/api/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password }),
